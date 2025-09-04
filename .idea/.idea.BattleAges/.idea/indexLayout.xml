@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelUserStore">
+    <attachedFolders />
+    <explicitIncludes>
+      <Path>../../../../AppData/Local/Unity/cache/packages/packages.unity.com/com.unity.nuget.mono-cecil@1.11.4</Path>
+      <Path>../../../../AppData/Local/Unity/cache/packages/packages.unity.com/com.unity.timeline@1.8.7</Path>
+      <Path>Packages</Path>
+      <Path>ProjectSettings</Path>
+    </explicitIncludes>
+    <explicitExcludes>
+      <Path>.idea</Path>
+      <Path>Logs</Path>
+      <Path>UserSettings</Path>
+      <Path>obj</Path>
+    </explicitExcludes>
+  </component>
+</project>
