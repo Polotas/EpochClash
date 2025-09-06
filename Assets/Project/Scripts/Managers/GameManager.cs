@@ -77,6 +77,8 @@ public class GameManager : MonoBehaviour
             // UPDATE UI EVENTS
             onCurrencyChanged?.Invoke(currentGold);
             _uiGameController.InitUpdateSettings();
+            saveUpgrade.meatSpeed.factorPriceMultiply = 1.4f;
+
         }
         else
         {
@@ -94,7 +96,10 @@ public class GameManager : MonoBehaviour
             saveUpgrade.meatSpeed.startPrice = 5;
             saveUpgrade.meatSpeed.maxLevel = 15;
             saveUpgrade.meatSpeed.currentLevel = 0;
-            saveUpgrade.meatSpeed.factorPriceMultiply = 1.8f;
+            saveUpgrade.meatSpeed.factorPriceMultiply = 1.4f;
+            currentGold = 50;
+            onCurrencyChanged?.Invoke(currentGold);
+            SaveGame();
         }
     }
     

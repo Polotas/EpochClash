@@ -23,7 +23,7 @@ public class UIPause : MonoBehaviour
     public float animationTime = .3f;
     
     private bool isPause;
-    private GameManager gm;
+    private GameManager _gm;
     
     private void Awake()
     {
@@ -35,7 +35,7 @@ public class UIPause : MonoBehaviour
 
     private void Start()
     {
-        gm = GameManager.Instance;
+        _gm = GameManager.Instance;
     }
 
     private void Button_Pause()
@@ -48,7 +48,7 @@ public class UIPause : MonoBehaviour
             return;
         }
         
-        gm.Pause(true);
+        _gm.Pause(true);
         buttonContinue.gameObject.SetActive(true);
         buttonQuit.gameObject.SetActive(true);
         buttonQuitContinue.gameObject.SetActive(false);
@@ -70,7 +70,7 @@ public class UIPause : MonoBehaviour
     {
         AudioManager.PlayButtonSound();
         isPause = false;
-        gm.Pause(false);
+        _gm.Pause(false);
         bgPause.DOScale(Vector3.zero, animationTime).SetEase(easeOut).SetUpdate(true);
         Time.timeScale = 1;
     }
@@ -82,36 +82,43 @@ public class UIPause : MonoBehaviour
         AudioManager.PlayButtonSound();
         var currentEarned = GameManager.Instance.currentGoldEarned;
         Time.timeScale = 1;
-
+        _gm.RemoveUnits();
+        
         if (currentEarned >= 5)
         {
             foreach (var t in currencyFX)
             {
-                // posição base (centro da esfera)
                 Vector2 basePos = fxPosition.position;
-
-                // gera posição aleatória dentro de uma esfera
                 Vector2 randomOffset = Random.insideUnitSphere * 100f; // raio = 2 (pode ajustar)
-
-                // aplica a posição inicial
-                t.transform.position = basePos + randomOffset;
-
-                t.transform.localScale = Vector3.one;
-                var randomTime = Random.Range(0.15f, 0.3f);
-                t.transform.DOMove(fxEndPosition.position, randomTime).SetEase(easeOut).SetUpdate(true);
-                t.transform.DOScale(Vector3.zero, randomTime).SetEase(easeOut).SetUpdate(true);
+                t.transform.position = basePos;
+                
+                t.transform.DOMove(basePos + randomOffset, 1).SetEase(easeOut).SetUpdate(true);
+                t.transform.DOScale(Vector3.one, 0.5f).SetEase(easeOut).SetUpdate(true);
             }
+
+            yield return new WaitForSeconds(1f);
             
-            yield return new WaitForSeconds(.2f);
-            GameManager.Instance.AddGold(currentEarned);
-            GameManager.Instance.AddGoldEarned(-currentEarned);
-            AudioManager.PlayCollectCoin();
+            if (currentEarned >= 5)
+            {
+                foreach (var t in currencyFX)
+                {
+                    var randomTime = Random.Range(0.8f, 1f);
+                    t.transform.DOMove(fxEndPosition.position, randomTime).SetEase(easeOut).SetUpdate(true).onComplete = CallAudioCoin;
+                    t.transform.DOScale(Vector3.zero, randomTime).SetEase(easeOut).SetUpdate(true);
+                }
+            }
+
+            yield return new WaitForSeconds(1f);
+            _gm.AddGold(currentEarned);
+            _gm.AddGoldEarned(-currentEarned);
         }
 
         isPause = false;
-        gm.Pause(false);
-        gm.EndGame(true);
+        _gm.Pause(false);
+        _gm.EndGame(true);
         bgPause.DOScale(Vector3.zero, animationTime).SetEase(easeOut).SetUpdate(true);
 
     }
+    
+    private void CallAudioCoin() =>AudioManager.PlayCollectCoin();
 }

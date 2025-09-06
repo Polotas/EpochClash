@@ -55,15 +55,20 @@ public class UnitController : MonoBehaviour
 
         var distance = Vector3.Distance(transform.position, currentTarget.position);
 
+        float velocity = _agent.velocity.magnitude;
+        float normalized = velocity / _agent.speed;
+        
+        _unitView.SpeedAnimation(normalized);
+        
         if (distance <= currentUnit.attackRange)
         {
-            _agent.isStopped = true; // para de andar
+            _agent.isStopped = true; 
             TryAttack();
         }
         else
         {
             _agent.isStopped = false;
-            _agent.SetDestination(currentTarget.position); // segue até chegar no range
+            _agent.SetDestination(currentTarget.position); 
         }
     }
 

@@ -9,6 +9,7 @@ public class UIHome : MonoBehaviour
     public Button buttonStartGame;
     public Button buttonUpdatetGame;
     public Button buttonSettingsGame;
+    public Button buttonDiscord;
     public Transform bottomMenu;
     public Transform topMenu;
     public Transform logo;
@@ -32,11 +33,13 @@ public class UIHome : MonoBehaviour
         buttonStartGame.onClick.AddListener(Button_StartGame);
         buttonUpdatetGame.onClick.AddListener(Button_Update);
         buttonSettingsGame.onClick.AddListener(Button_Settings);
+        buttonDiscord.onClick.AddListener(Button_Discord);
     }
 
     private void Button_StartGame() => StartCoroutine(IE_StartGame());
     private void Button_Update() => _uiGameController.OpenUpdate();
     private void Button_Settings() => _uiGameController.OpenSettings();
+    private void Button_Discord() => Application.OpenURL("https://discord.gg/BhTSC9mT");
     
     private IEnumerator IE_StartGame() 
     {
