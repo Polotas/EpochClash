@@ -24,13 +24,16 @@ public class UIPause : MonoBehaviour
     
     private bool isPause;
     private GameManager _gm;
+    private Tween _bgTween;
+    private bool _isAnimating = false;
+    private bool _isQuitting = false;
     
     private void Awake()
     {
         buttonPause.onClick.AddListener(Button_Pause);
         buttonContinue.onClick.AddListener(Button_Continue);
-        buttonQuit.onClick.AddListener(Button_Quit);
         buttonQuitContinue.onClick.AddListener(Button_Quit);
+        buttonQuit.onClick.AddListener(Button_Quit);
     }
 
     private void Start()
@@ -40,6 +43,8 @@ public class UIPause : MonoBehaviour
 
     private void Button_Pause()
     {
+        buttonQuit.enabled = true;
+        buttonQuitContinue.enabled = true;
         AudioManager.PlayButtonSound();
         
         if (isPause)
@@ -48,37 +53,65 @@ public class UIPause : MonoBehaviour
             return;
         }
         
+        if (_isAnimating) return;
+        _isAnimating = true;
+        
         _gm.Pause(true);
         buttonContinue.gameObject.SetActive(true);
         buttonQuit.gameObject.SetActive(true);
         buttonQuitContinue.gameObject.SetActive(false);
         isPause = true;
-        bgPause.DOScale(Vector3.one, animationTime).SetEase(easeIn).SetUpdate(true);
+        
+        _bgTween?.Kill();
+        _bgTween = bgPause.DOScale(Vector3.one, animationTime)
+            .SetEase(easeIn)
+            .SetUpdate(true)
+            .OnComplete(() => _isAnimating = false);
         Time.timeScale = 0;
     }
 
     public void EndGame(bool win)
     {
-        bgPause.DOScale(Vector3.one, animationTime).SetEase(easeIn).SetUpdate(true);
+        _bgTween?.Kill();
+        _bgTween = bgPause.DOScale(Vector3.one, animationTime)
+            .SetEase(easeIn)
+            .SetUpdate(true);
         buttonContinue.gameObject.SetActive(false);
         buttonQuit.gameObject.SetActive(false);
         buttonQuitContinue.gameObject.SetActive(true);
         Time.timeScale = 1;
+        _isAnimating = false;
     }
     
     private void Button_Continue()
     {
+        if (_isAnimating) return;
+        _isAnimating = true;
+        
         AudioManager.PlayButtonSound();
         isPause = false;
         _gm.Pause(false);
-        bgPause.DOScale(Vector3.zero, animationTime).SetEase(easeOut).SetUpdate(true);
+        
+        _bgTween?.Kill();
+        _bgTween = bgPause.DOScale(Vector3.zero, animationTime)
+            .SetEase(easeOut)
+            .SetUpdate(true)
+            .OnComplete(() => _isAnimating = false);
         Time.timeScale = 1;
     }
 
-    private void Button_Quit() => StartCoroutine(CollectEarned());
+    private void Button_Quit()
+    {
+        if (_isQuitting) return;
+        buttonQuit.enabled = false;
+        buttonQuitContinue.enabled = false;
+        StartCoroutine(CollectEarned());
+    }
 
     private IEnumerator CollectEarned() 
     {
+        _isQuitting = true;
+        
         AudioManager.PlayButtonSound();
         var currentEarned = GameManager.Instance.currentGoldEarned;
         Time.timeScale = 1;
@@ -89,7 +122,7 @@ public class UIPause : MonoBehaviour
             foreach (var t in currencyFX)
             {
                 Vector2 basePos = fxPosition.position;
-                Vector2 randomOffset = Random.insideUnitSphere * 100f; // raio = 2 (pode ajustar)
+                Vector2 randomOffset = Random.insideUnitSphere * 100f; 
                 t.transform.position = basePos;
                 
                 t.transform.DOMove(basePos + randomOffset, 1).SetEase(easeOut).SetUpdate(true);
@@ -116,8 +149,13 @@ public class UIPause : MonoBehaviour
         isPause = false;
         _gm.Pause(false);
         _gm.EndGame(true);
-        bgPause.DOScale(Vector3.zero, animationTime).SetEase(easeOut).SetUpdate(true);
-
+        
+        _bgTween?.Kill();
+        _bgTween = bgPause.DOScale(Vector3.zero, animationTime)
+            .SetEase(easeOut)
+            .SetUpdate(true);
+        
+        _isQuitting = false;
     }
     
     private void CallAudioCoin() =>AudioManager.PlayCollectCoin();

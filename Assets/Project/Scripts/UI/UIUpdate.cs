@@ -43,6 +43,8 @@ public class UIUpdate : MonoBehaviour
     
     private UIGameController _uIGameController;
     private GameManager _gm;
+    private Tween _bgTween;
+    private bool _isAnimating = false;
     
     private void Awake()
     {
@@ -58,22 +60,38 @@ public class UIUpdate : MonoBehaviour
     private void Start()
     {
         _gm = GameManager.Instance;
+        _gm.onCurrencyChanged += UpdateUpgradeUI;
     }
 
     public void Open()
     {
+        if (_isAnimating) return;
+        _isAnimating = true;
+        
         UpdateUpgradeUI();
         AudioManager.PlayButtonSound();
-        bgUpdate.DOScale(Vector3.one, animationTime).SetEase(easeIn).SetDelay(.5f); 
+        
+        _bgTween?.Kill();
+        _bgTween = bgUpdate.DOScale(Vector3.one, animationTime)
+            .SetEase(easeIn)
+            .SetDelay(.5f)
+            .OnComplete(() => _isAnimating = false);
     }
 
     public void Close()
     {
+        if (_isAnimating) return;
+        _isAnimating = true;
+        
         AudioManager.PlayButtonSound();
-        bgUpdate.DOScale(Vector3.zero, animationTime).SetEase(easeOut);
+        
+        _bgTween?.Kill();
+        _bgTween = bgUpdate.DOScale(Vector3.zero, animationTime)
+            .SetEase(easeOut)
+            .OnComplete(() => _isAnimating = false);
     }
 
-    private void UpdateUpgradeUI()
+    private void UpdateUpgradeUI(int valor = 0)
     {
         var priceBase = _gm.saveUpgrade.baseLive.getPrice();
         var statsBase = _gm.saveUpgrade.baseLive.getCurrentStatsMultiplier();
@@ -102,6 +120,7 @@ public class UIUpdate : MonoBehaviour
 
     private void Button_UpdateUnit2()
     {
+        buttonUpgradeUnit2.interactable = false;
         AudioManager.PlayButtonSound();
         _gm.UnlockUnit2();
         _gm.AddGold(-100); // Reduzido de -150 para -100
@@ -109,6 +128,7 @@ public class UIUpdate : MonoBehaviour
     } 
     private void Button_UpdateUnit3()    
     {
+        buttonUpgradeUnit3.interactable = false;
         AudioManager.PlayButtonSound();
         _gm.UnlockUnit3();
         _gm.AddGold(-250); // Reduzido de -370 para -250
@@ -117,15 +137,15 @@ public class UIUpdate : MonoBehaviour
 
     private void Button_UpdateBase()
     {
+        buttonUpgradeBase.interactable = false;
         AudioManager.PlayButtonSound();
         _gm.UpgradeLiveBase();
-        UpdateUpgradeUI();
     } 
 
     private void Button_UpdateMeat()
     {
+        buttonUpgradeMeat.interactable = false;
         AudioManager.PlayButtonSound();
         _gm.UpgradeMeat();
-        UpdateUpgradeUI();
     } 
 }

@@ -48,6 +48,14 @@ public class GameManager : MonoBehaviour
             _uiGameController = FindFirstObjectByType<UIGameController>();
             _uiPopupWelcome = FindFirstObjectByType<UIPopupWelcome>();
             _uiPause = FindFirstObjectByType<UIPause>();
+            
+            // Certifica que o UnitManager existe
+            if (UnitManager.Instance == null)
+            {
+                GameObject unitManagerObj = new GameObject("UnitManager");
+                unitManagerObj.AddComponent<UnitManager>();
+            }
+            
             DontDestroyOnLoad(gameObject);
         }
     }
@@ -200,6 +208,13 @@ public class GameManager : MonoBehaviour
         
         RemoveUnits();
         DropManager.ResetKillStreak();
+        
+        // Limpa completamente o cache de unidades
+        if (UnitManager.Instance != null)
+        {
+            UnitManager.Instance.ClearAllCaches();
+        }
+        
         onEndGame?.Invoke();
     }   
 
@@ -239,8 +254,9 @@ public class GameManager : MonoBehaviour
     
     public void UpgradeMeat()
     {
-        AddGold(-saveUpgrade.meatSpeed.getPrice());
         saveUpgrade.meatSpeed.currentLevel++;
+        
+        AddGold(-saveUpgrade.meatSpeed.getPrice());
         onUpgradeMeat?.Invoke(saveUpgrade.meatSpeed.getCurrentStatsRemove());
         
         // Force save após upgrade importante

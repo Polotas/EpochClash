@@ -36,8 +36,12 @@ public class UIUpdateCurrency : MonoBehaviour
     {
         var punch = new Vector3(0.2f, 0.2f, 0.2f);
         text.transform.localScale = Vector3.one;
-        visual.transform.DOPunchScale(punch, 0.2f,0,0.01f);
-        text.transform.DOPunchScale(punch, 0.2f,0,0.01f);
+        
+        // Usa o sistema seguro de animação
+        var safeAnimator = this.GetSafeAnimator();
+        safeAnimator.SafePunchScale(visual.transform, punch, 0.2f, "visual_punch");
+        safeAnimator.SafePunchScale(text.transform, punch, 0.2f, "text_punch");
+        
         text.text = CurrencyFormatter.FormatCurrency(valor);
         
         if(currencyType == Currency_Type.GoldEarned) AudioManager.PlayCollectCoin();

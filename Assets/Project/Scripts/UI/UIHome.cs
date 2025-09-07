@@ -17,6 +17,7 @@ public class UIHome : MonoBehaviour
     private UIGameController _uiGameController;
     private EnemySpawner _enemySpawner;
     private Camera _mainCamera;
+    private bool _isStartingGame = false;
 
     [Header("Animation BG")]
     public float bottomShow;
@@ -30,19 +31,27 @@ public class UIHome : MonoBehaviour
         _unitController = FindFirstObjectByType<UIUnitController>();
         _enemySpawner = FindFirstObjectByType<EnemySpawner>();
         _mainCamera = Camera.main;
-        buttonStartGame.onClick.AddListener(Button_StartGame);
-        buttonUpdatetGame.onClick.AddListener(Button_Update);
-        buttonSettingsGame.onClick.AddListener(Button_Settings);
-        buttonDiscord.onClick.AddListener(Button_Discord);
+        // Usa SafeButton para proteger contra cliques duplos
+        buttonStartGame.MakeSafe(Button_StartGame, 1.0f); // 1 segundo de cooldown para Battle
+        buttonUpdatetGame.MakeSafe(Button_Update, 0.5f);
+        buttonSettingsGame.MakeSafe(Button_Settings, 0.5f);
+        buttonDiscord.MakeSafe(Button_Discord, 0.3f);
     }
 
-    private void Button_StartGame() => StartCoroutine(IE_StartGame());
+    private void Button_StartGame()
+    {
+        // Proteção adicional contra múltiplas execuções
+        if (_isStartingGame) return;
+        StartCoroutine(IE_StartGame());
+    }
     private void Button_Update() => _uiGameController.OpenUpdate();
     private void Button_Settings() => _uiGameController.OpenSettings();
     private void Button_Discord() => Application.OpenURL("https://discord.gg/BhTSC9mT");
     
     private IEnumerator IE_StartGame() 
     {
+        _isStartingGame = true;
+        
         AudioManager.PlayButtonSound();
 
         _unitController.ShowOrHideBottomMenu(true);
@@ -55,6 +64,8 @@ public class UIHome : MonoBehaviour
 
         GameManager.Instance.InitGame();
         MeatManager.Instance.GenerateMeat(true);
+        
+        _isStartingGame = false;
     }
 
     public void EndGame()

@@ -13,6 +13,8 @@ public class UIUnit : MonoBehaviour
     
     private Button _button;
     private PlayerSpawner _playerSpawner;
+    private Tween _punchTween;
+    private bool _isAnimating = false;
 
     private void Awake()
     {
@@ -42,7 +44,11 @@ public class UIUnit : MonoBehaviour
         else
         {
             var punch = new Vector3(0.2f, 0.2f, 0.2f);
-            if(!_button.enabled)transform.DOPunchScale(punch, 0.3f,0,0.01f);
+            if(!_button.enabled && !_isAnimating)
+            {
+                _punchTween?.Kill();
+                _punchTween = transform.DOPunchScale(punch, 0.3f,0,0.01f);
+            }
             objBlock.SetActive(false);
             _button.enabled = true;
         }
@@ -50,10 +56,16 @@ public class UIUnit : MonoBehaviour
     
     private void Button_BuyUnit()
     {
+        if (_isAnimating) return;
+        _isAnimating = true;
+        
         AudioManager.PlayButtonSound();
         _playerSpawner.SpawnUnit(playerSpawnerType);
         MeatManager.Instance.AddMeat(-price);
+        
         var punch = new Vector3(0.1f, 0.1f, 0.1f);
-        transform.DOPunchScale(punch, 0.3f,0,0.01f);
+        _punchTween?.Kill();
+        _punchTween = transform.DOPunchScale(punch, 0.3f,0,0.01f)
+            .OnComplete(() => _isAnimating = false);
     }
 }
