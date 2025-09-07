@@ -219,5 +219,22 @@ public class UnitController : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    private void DropCurrency() => DropManager.DropCurrency(transform);
+    private void DropCurrency() 
+    {
+        // Determina se é inimigo elite baseado no tipo de ataque
+        bool isElite = attackType == AttackType.Big;
+        DropManager.DropCurrency(transform, isElite);
+        
+        // Atualiza conquistas se for inimigo morto pelo jogador (temporariamente desabilitado para WebGL)
+        // if (!isPlayer && AchievementManager.Instance != null)
+        // {
+        //     AchievementManager.Instance.UpdateProgress(AchievementType.KillEnemies);
+        //     
+        //     // Atualiza kill streak
+        //     if (DropManager.currentKillStreak >= 20)
+        //     {
+        //         AchievementManager.Instance.UpdateProgress(AchievementType.KillStreak, DropManager.currentKillStreak);
+        //     }
+        // }
+    }
 }

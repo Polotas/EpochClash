@@ -93,8 +93,8 @@ public class UIUpdate : MonoBehaviour
         
         blockObjectUnit2.SetActive(_gm.saveUpgrade.unlockUnit2);
         blockObjectUnit3.SetActive(_gm.saveUpgrade.unlockUnit3);
-        buttonUpgradeUnit2.interactable = _gm.CheckButtonUnlock(150);
-        buttonUpgradeUnit3.interactable = _gm.CheckButtonUnlock(370);
+        buttonUpgradeUnit2.interactable = _gm.CheckButtonUnlock(100); // Reduzido de 150 para 100
+        buttonUpgradeUnit3.interactable = _gm.CheckButtonUnlock(250); // Reduzido de 370 para 250
     }
     
     private void Button_Closed() => _uIGameController.CloseUpdate();
@@ -104,14 +104,14 @@ public class UIUpdate : MonoBehaviour
     {
         AudioManager.PlayButtonSound();
         _gm.UnlockUnit2();
-        _gm.AddGold(-150);
+        _gm.AddGold(-100); // Reduzido de -150 para -100
         blockObjectUnit2.SetActive(true);
     } 
     private void Button_UpdateUnit3()    
     {
         AudioManager.PlayButtonSound();
         _gm.UnlockUnit3();
-        _gm.AddGold(-370);
+        _gm.AddGold(-250); // Reduzido de -370 para -250
         blockObjectUnit3.SetActive(true);
     } 
 

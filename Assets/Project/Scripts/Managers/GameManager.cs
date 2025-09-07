@@ -11,6 +11,11 @@ public class GameManager : MonoBehaviour
     public int currentEra;
     public SaveSettings saveSettings;
     public SaveUpgrade saveUpgrade;
+    
+    [Header("Economy Balance")]
+    public int baseVictoryReward = 50;
+    public int winStreakBonus = 0;
+    public int currentWinStreak = 0;
 
     public bool isPause;
     public event Action<int> onCurrencyChanged;
@@ -86,18 +91,18 @@ public class GameManager : MonoBehaviour
             
             // BASE LIFE UPGRADE
             saveUpgrade.baseLive.startStats = 10;
-            saveUpgrade.baseLive.startPrice = 10;
+            saveUpgrade.baseLive.startPrice = 8; // Reduzido de 10 para 8
             saveUpgrade.baseLive.currentLevel = 0;
-            saveUpgrade.baseLive.factorPriceMultiply = 1.9f;
+            saveUpgrade.baseLive.factorPriceMultiply = 1.6f; // Reduzido de 1.9f para 1.6f
 
             // MEAT UPGRADE
             
             saveUpgrade.meatSpeed.startStats = 4;
-            saveUpgrade.meatSpeed.startPrice = 5;
-            saveUpgrade.meatSpeed.maxLevel = 15;
+            saveUpgrade.meatSpeed.startPrice = 4; // Reduzido de 5 para 4
+            saveUpgrade.meatSpeed.maxLevel = 20; // Aumentado de 15 para 20
             saveUpgrade.meatSpeed.currentLevel = 0;
-            saveUpgrade.meatSpeed.factorPriceMultiply = 1.4f;
-            currentGold = 50;
+            saveUpgrade.meatSpeed.factorPriceMultiply = 1.3f; // Reduzido de 1.4f para 1.3f
+           // currentGold = 50;
             onCurrencyChanged?.Invoke(currentGold);
             SaveGame();
         }
@@ -107,7 +112,20 @@ public class GameManager : MonoBehaviour
     {
         currentGold += valor;
         onCurrencyChanged?.Invoke(currentGold);
+        
+        // Atualiza conquistas de coleta de ouro (temporariamente desabilitado para WebGL)
+        // if (valor > 0 && AchievementManager.Instance != null)
+        // {
+        //     AchievementManager.Instance.UpdateProgress(AchievementType.CollectGold, valor);
+        // }
+        
         SaveGame();
+        
+        // Auto-save adicional para mudanças importantes
+        if (AutoSaveManager.Instance != null && Mathf.Abs(valor) >= 50)
+        {
+            AutoSaveManager.Instance.ForceSave($"Gold change: {valor}");
+        }
     }
 
     public void AddGoldEarned(int valor)
@@ -145,13 +163,43 @@ public class GameManager : MonoBehaviour
         if(quit)
         {
             _uiGameController.EndGame();
+            // Reset win streak on quit
+            currentWinStreak = 0;
+            winStreakBonus = 0;
         }
         else
         {
+            if(win)
+            {
+                // Calcula recompensa por vitória
+                int victoryReward = CalculateVictoryReward();
+                AddGold(victoryReward);
+                AddGoldEarned(victoryReward);
+                
+                currentWinStreak++;
+                if(currentWinStreak >= 3)
+                {
+                    winStreakBonus = Mathf.Min(winStreakBonus + 10, 50); // Máximo +50 gold
+                }
+                
+                // Atualiza conquistas de vitória (temporariamente desabilitado para WebGL)
+                // if (AchievementManager.Instance != null)
+                // {
+                //     AchievementManager.Instance.UpdateProgress(AchievementType.WinGames);
+                // }
+            }
+            else
+            {
+                // Reset streak em derrota
+                currentWinStreak = 0;
+                winStreakBonus = 0;
+            }
+            
             _uiPause.EndGame(win);
         }
         
         RemoveUnits();
+        DropManager.ResetKillStreak();
         onEndGame?.Invoke();
     }   
 
@@ -181,6 +229,12 @@ public class GameManager : MonoBehaviour
     {
         AddGold(-saveUpgrade.baseLive.getPrice());
         saveUpgrade.baseLive.currentLevel++;
+        
+        // Force save após upgrade importante
+        if (AutoSaveManager.Instance != null)
+        {
+            AutoSaveManager.Instance.ForceSave("Base upgrade");
+        }
     }
     
     public void UpgradeMeat()
@@ -188,6 +242,12 @@ public class GameManager : MonoBehaviour
         AddGold(-saveUpgrade.meatSpeed.getPrice());
         saveUpgrade.meatSpeed.currentLevel++;
         onUpgradeMeat?.Invoke(saveUpgrade.meatSpeed.getCurrentStatsRemove());
+        
+        // Force save após upgrade importante
+        if (AutoSaveManager.Instance != null)
+        {
+            AutoSaveManager.Instance.ForceSave("Meat upgrade");
+        }
     }
 
     public bool CheckButtonUnlock(float value)
@@ -205,6 +265,22 @@ public class GameManager : MonoBehaviour
     {
         saveUpgrade.unlockUnit3 = true;
         SaveGame();
+    }
+
+    private int CalculateVictoryReward()
+    {
+        int reward = baseVictoryReward;
+        
+        // Bonus por era atual
+        reward += currentEra * 10;
+        
+        // Bonus por win streak
+        reward += winStreakBonus;
+        
+        // Bonus por tempo (recompensa maior se ganhar rápido)
+        // Implementar se necessário
+        
+        return reward;
     }
 
     #endregion

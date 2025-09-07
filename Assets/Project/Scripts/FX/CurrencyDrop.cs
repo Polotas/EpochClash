@@ -10,6 +10,11 @@ public class CurrencyDrop : MonoBehaviour
     private Camera _worldCamera;
     public int dropValor = 5;
     private bool _onWait;
+    
+    [Header("Dynamic Drop System")]
+    public int baseDropValue = 5;
+    public int bonusDropValue = 0;
+    public bool isBonusDrop = false;
 
     private void Awake()
     {
@@ -22,13 +27,17 @@ public class CurrencyDrop : MonoBehaviour
         _moveTween?.Kill();
         _scaleTween?.Kill();
         
+        // Calcula valor final do drop
+        dropValor = baseDropValue + bonusDropValue;
+        
         transform.position = startPos;
 
         float randomX = Random.Range(-3f, 3f);
         float randomZ = Random.Range(-3, 3);
         Vector3 endPos = new Vector3(startPos.x + randomX, startPos.y, startPos.z + randomZ);
 
-        var punch = new Vector3(0.2f, 0.2f, 0.2f);
+        // Animação diferente para drops bonus
+        var punch = isBonusDrop ? new Vector3(0.4f, 0.4f, 0.4f) : new Vector3(0.2f, 0.2f, 0.2f);
         transform.DOPunchScale(punch, 0.3f,0,0.01f);
         
         // Movimento em parábola (como bolinha)
@@ -48,7 +57,8 @@ public class CurrencyDrop : MonoBehaviour
             1f, duration
         ).SetEase(Ease.Linear);
         
-        float randomScale = Random.Range(0.9f, 1.1f);
+        // Escala maior para drops bonus
+        float randomScale = isBonusDrop ? Random.Range(1.2f, 1.4f) : Random.Range(0.9f, 1.1f);
         transform.localScale = Vector3.one * randomScale;
         _onWait = true;
         StartCoroutine(WaitToAdd(2));
